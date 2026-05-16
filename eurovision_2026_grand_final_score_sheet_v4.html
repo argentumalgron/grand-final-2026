@@ -1,0 +1,231 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐻 Eurovision 2026 Grand Final Score Sheet</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Ctext y=%2252%22 font-size=%2252%22%3E🐻%3C/text%3E%3C/svg%3E">
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+:root{
+  --bg1:#0a0f2c; --bg2:#1f0d4d; --card:#ffffff10; --border:#ffffff22;
+  --text:#f8f9ff; --accent:#7cf0ff; --gold:#ffd86b;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; color:var(--text); font-family:Inter,Segoe UI,Arial,sans-serif;
+  background:radial-gradient(circle at top,#223b8f 0%,var(--bg1) 40%,var(--bg2) 100%);
+}
+.container{max-width:1400px;margin:auto;padding:24px}
+.hero,.card{
+  border:1px solid var(--border); border-radius:24px;
+  background:linear-gradient(135deg,#ffffff12,#ffffff06);
+  backdrop-filter:blur(10px);
+}
+.hero{padding:24px;text-align:center}
+h1{margin:0;font-size:clamp(2rem,4vw,4rem)}
+.subtitle{opacity:.85;margin-top:10px}
+.layout{display:grid;grid-template-columns:1fr 360px;gap:24px;margin-top:24px}
+@media(max-width:1100px){.layout{grid-template-columns:1fr}}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+.card{padding:18px}
+.country{font-weight:700;font-size:1.15rem;margin-bottom:12px}
+
+.artist{font-size:.82rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+.song{font-size:.9rem;font-style:italic;opacity:.9;margin-bottom:8px}
+select,textarea,button{
+  width:100%; border:none; border-radius:14px; padding:12px 14px; font:inherit;
+}
+select,textarea{background:#fff;color:#111827}
+textarea{resize:vertical;min-height:90px}
+.sidebar{position:sticky;top:20px;align-self:start}
+.top5-item{
+  background:#ffffff14; border:1px solid var(--border);
+  border-radius:14px; padding:12px; margin-bottom:10px;
+}
+button{
+  cursor:pointer; font-weight:800; color:#08111f;
+  background:linear-gradient(90deg,var(--accent),var(--gold));
+}
+.warning{color:#ffd0d0;min-height:1.2em;font-size:.9rem}
+.note,.footer{opacity:.8}
+.commentary-box{
+  margin:14px 0;
+  padding:12px;
+  border-radius:14px;
+  background:#ffffff10;
+  border:1px solid var(--border);
+}
+.commentary-box h3{margin:0 0 8px 0;font-size:1rem}
+.top5-item.winner{
+  background:linear-gradient(135deg, rgba(255,216,107,0.35), rgba(255,255,255,0.12));
+  border:1px solid rgba(255,216,107,0.65);
+  box-shadow:0 0 20px rgba(255,216,107,0.18);
+}
+.footer{text-align:center;padding:30px 10px}
+#snapshotArea.exporting{
+  background: radial-gradient(circle at top,#223b8f 0%,#0a0f2c 40%,#1f0d4d 100%) !important;
+  backdrop-filter:none !important;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <h1>🐻✨ Eurovision 2026 Grand Final Score Sheet ✨🐻</h1>
+    <div class="subtitle">Save comments automatically and export your Top 5 as a beautiful PNG.</div>
+  </div>
+
+  <div class="layout">
+    <div><div class="grid" id="cards"></div></div>
+    <div class="sidebar">
+      <div class="card" id="snapshotArea">
+        <h2 style="margin-top:0">🏆🐻 My Top 5 Prediction</h2>
+        <div class="warning" id="warning"></div>
+        <div id="top5List"></div>
+        <div class="commentary-box">
+          <h3>📝 Final Commentary</h3>
+          <textarea id="finalCommentary" placeholder="Write your thoughts about the Grand Final night..." oninput="saveState()"></textarea>
+        </div>
+        <button onclick="savePNG()">📸 Save My Top 5 as PNG</button>
+        <div class="note" style="margin-top:10px">All comments and rankings are saved automatically in your browser. 💾</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">Made for an unforgettable Eurovision night with friends and bear energy. 🐻💙</div>
+</div>
+
+<script>
+const STORAGE_KEY = 'eurovision2026-score-sheet-v2';
+
+const entries = [
+["🇩🇰","Denmark","Søren Torpegaard Lund","Før Vi Går Hjem"],
+["🇩🇪","Germany","Sarah Engels","Fire"],
+["🇮🇱","Israel","Noam Bettan","Michelle"],
+["🇧🇪","Belgium","ESSYLA","Dancing on the Ice"],
+["🇦🇱","Albania","Alis","Nân"],
+["🇬🇷","Greece","Akylas","Ferto"],
+["🇺🇦","Ukraine","LELÉKA","Ridnym"],
+["🇦🇺","Australia","Delta Goodrem","Eclipse"],
+["🇷🇸","Serbia","LAVINA","Kraj Mene"],
+["🇲🇹","Malta","AIDAN","Bella"],
+["🇨🇿","Czechia","Daniel Zizka","CROSSROADS"],
+["🇧🇬","Bulgaria","DARA","Bangaranga"],
+["🇭🇷","Croatia","LELEK","Andromeda"],
+["🇬🇧","United Kingdom","LOOK MUM NO COMPUTER","Eins, Zwei, Drei"],
+["🇫🇷","France","Monroe","Regarde !"],
+["🇲🇩","Moldova","Satoshi","Viva, Moldova!"],
+["🇫🇮","Finland","Linda Lampenius x Pete Parkkonen","Liekinheitin"],
+["🇵🇱","Poland","ALICJA","Pray"],
+["🇱🇹","Lithuania","Lion Ceccah","Sólo Quiero Más"],
+["🇸🇪","Sweden","FELICIA","My System"],
+["🇨🇾","Cyprus","Antigoni","JALLA"],
+["🇮🇹","Italy","Sal Da Vinci","Per Sempre Sì"],
+["🇳🇴","Norway","JONAS LOVV","YA YA YA"],
+["🇷🇴","Romania","Alexandra Căpitănescu","Choke Me"],
+["🇦🇹","Austria","COSMÓ","Tanzschein"]
+];
+
+function loadState(){
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+  catch { return {}; }
+}
+
+function saveState(){
+  const state = {};
+  document.querySelectorAll('.entry-card').forEach(card => {
+    const country = card.dataset.country;
+    state[country] = {
+      rank: card.querySelector('select').value,
+      comment: card.querySelector('textarea').value
+    };
+  });
+  state.__finalCommentary = document.getElementById('finalCommentary')?.value || '';
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+const saved = loadState();
+const cards = document.getElementById('cards');
+
+entries.forEach(([flag, country, artist, song], index) => {
+  const data = saved[country] || {};
+  const card = document.createElement('div');
+  card.className = 'card entry-card';
+  card.dataset.country = country;
+  card.innerHTML = `
+    <div class="artist">${artist}</div>
+    <div class="song">“${song}”</div>
+    <div class="country">${index + 1}. ${flag} ${country}</div>
+    <select onchange="saveState(); updateTop5();">
+      <option value="">No rank</option>
+      <option value="1" ${data.rank==='1'?'selected':''}>🥇 1st</option>
+      <option value="2" ${data.rank==='2'?'selected':''}>🥈 2nd</option>
+      <option value="3" ${data.rank==='3'?'selected':''}>🥉 3rd</option>
+      <option value="4" ${data.rank==='4'?'selected':''}>⭐ 4th</option>
+      <option value="5" ${data.rank==='5'?'selected':''}>✨ 5th</option>
+    </select>
+    <textarea placeholder="🐻 Your thoughts about ${country}..."
+      oninput="saveState()">${data.comment || ''}</textarea>
+  `;
+  cards.appendChild(card);
+});
+
+document.getElementById('finalCommentary').value = saved.__finalCommentary || '';
+
+function updateTop5(){
+  const chosen = [...document.querySelectorAll('.entry-card')].map(card => ({
+    country: card.dataset.country,
+    rank: card.querySelector('select').value
+  }))
+  .filter(x => x.rank)
+  .map(x => ({country: x.country, rank: Number(x.rank)}));
+
+  const warning = document.getElementById('warning');
+  const top5List = document.getElementById('top5List');
+
+  const ranks = chosen.map(x => x.rank);
+  const hasDuplicates = ranks.some((r, i) => ranks.indexOf(r) !== i);
+  warning.textContent = hasDuplicates ? '⚠️ Duplicate ranking detected. Please use each place only once.' : '';
+
+  chosen.sort((a,b) => a.rank - b.rank);
+  top5List.innerHTML = '';
+
+  if (chosen.length === 0){
+    top5List.innerHTML = '<div class="top5-item">No predictions yet. 🐻</div>';
+    return;
+  }
+
+  const medals = {1:'🥇',2:'🥈',3:'🥉',4:'⭐',5:'✨'};
+  chosen.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'top5-item' + (item.rank === 1 ? ' winner' : '');
+    div.textContent = `${medals[item.rank]} #${item.rank} — ${item.country}`;
+    top5List.appendChild(div);
+  });
+}
+
+async function savePNG(){
+  updateTop5();
+  const area = document.getElementById('snapshotArea');
+  area.classList.add('exporting');
+
+  const canvas = await html2canvas(area, {
+    backgroundColor: '#0a0f2c',
+    scale: 2,
+    useCORS: true
+  });
+
+  area.classList.remove('exporting');
+
+  const link = document.createElement('a');
+  link.download = 'eurovision-2026-top5-prediction.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+updateTop5();
+</script>
+</body>
+</html>
